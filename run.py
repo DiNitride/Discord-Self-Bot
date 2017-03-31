@@ -8,6 +8,8 @@ from logbook import Logger, StreamHandler
 import sys
 import inspect
 
+modules = {""}
+
 StreamHandler(sys.stdout).push_application()
 log = Logger('Self Bot')
 
@@ -32,6 +34,14 @@ bot.log.info("Logger linked to bot")
 bot.config = _config
 bot.log.info("Config linked to bot")
 
+try:
+    with open("config/modules.json") as f:
+        modules = json.load(f)
+except FileNotFoundError:
+    log.error("Module file not found, loading defaults")
+
+
+
 def command_debug_message(ctx, name):
     if isinstance(ctx.channel, discord.DMChannel):
         bot.log.debug("Command: {} run in DM's by user {}/{}".format(name, ctx.author, ctx.author.id))
@@ -45,6 +55,7 @@ bot.cmd_log = command_debug_message
 @bot.event
 async def on_ready():
     bot.log.notice("Logged in as {} with ID {}".format(bot.user.name, bot.user.id))
+    bot.load_extension("modules.moderation")
 
 @bot.command()
 async def ping(ctx):

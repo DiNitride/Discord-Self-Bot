@@ -7,10 +7,6 @@ class Misc():
     def __init__(self, bot):
         self.bot = bot
 
-    ##################
-    ## Tags Section ##
-    ##################
-
     # Allowed the removal of a tag from the data file
     @commands.command(hidden=True)
     async def deltag(self, command: str):
