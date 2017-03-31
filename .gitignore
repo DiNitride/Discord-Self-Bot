@@ -1,3 +1,6 @@
-self_token.txt
 *.pyc
 tags.json
+.idea
+venv
+config/token.txt
+config/config.json
