@@ -77,6 +77,7 @@ class Moderation():
                     content = "```\n" \
                               "{}\nID: {}\n" \
                               "Friends?: {}\n" \
+                              "Mututal Guilds: {}\n" \
                               "Nitro?: {}\n" \
                               "Account Creation Data: {}\n" \
                               "```".format(
