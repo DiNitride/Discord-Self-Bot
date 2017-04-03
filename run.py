@@ -1,14 +1,11 @@
 import discord
 from discord.ext import commands
 import json
-import asyncio
 import datetime
 import time
 from logbook import Logger, StreamHandler
 import sys
 import inspect
-
-modules = {""}
 
 StreamHandler(sys.stdout).push_application()
 log = Logger('Self Bot')
@@ -22,25 +19,36 @@ except FileNotFoundError:
     df = open("config/defaults/default.config.json")
     _config = json.load(df)
     with open("config/config.json", "w") as f:
-            log.info("Saved configs to file")
-            f.write(json.dumps(_config))
+        log.info("Saved new config to file")
+        f.write(json.dumps(_config))
+
+try:
+    with open("config/modules.json") as f:
+        _modules = json.load(f)
+except FileNotFoundError:
+    log.error("Module loading list not found, loading defaults")
+    df = open("config/defaults/default.modules.json")
+    _modules = json.load(df)
+    with open("config/modules.json", "w") as f:
+        log.info("Saved module loading to file")
+        f.write(json.dumps(_modules))
 
 description = "A self bot to do things that are useful"
 bot = commands.Bot(command_prefix=[_config["prefix"]], description=description, self_bot=True)
 
-log.info("Linking logger and config to bot")
+log.info("Linking logger, module loading list and config to bot")
 bot.log = log
 bot.log.info("Logger linked to bot")
 bot.config = _config
 bot.log.info("Config linked to bot")
+bot.modules = _modules
+bot.log.info("Module loading linked to bot")
 
 try:
     with open("config/modules.json") as f:
         modules = json.load(f)
 except FileNotFoundError:
     log.error("Module file not found, loading defaults")
-
-
 
 def command_debug_message(ctx, name):
     if isinstance(ctx.channel, discord.DMChannel):
@@ -52,10 +60,15 @@ def command_debug_message(ctx, name):
 
 bot.cmd_log = command_debug_message
 
+
 @bot.event
 async def on_ready():
     bot.log.notice("Logged in as {} with ID {}".format(bot.user.name, bot.user.id))
     bot.load_extension("modules.moderation")
+    bot.log.notice("Loaded moderation")
+    bot.load_extension("modules.tags")
+    bot.log.notice("Loaded tags")
+
 
 @bot.command()
 async def ping(ctx):
@@ -65,9 +78,10 @@ async def ping(ctx):
     before = time.monotonic()
     await (await bot.ws.ping())
     after = time.monotonic()
-    ping = (after - before) * 1000
+    _ping = (after - before) * 1000
 
-    await ctx.send("Ping Pong :ping_pong: **{0:.0f}ms**".format(ping))
+    await ctx.send("Ping Pong :ping_pong: **{0:.0f}ms**".format(_ping))
+
 
 @bot.command(name="eval")
 async def _eval(ctx, code):
@@ -86,15 +100,13 @@ async def _eval(ctx, code):
         await ctx.send("```py\nInput: {}\nOutput: {}\n```".format(code, result))
     await ctx.message.delete()
 
-@bot.command()
-async def logout():
-    """What do you think it does?"""
-    await bot.logout()
-
 bot.remove_command("help")
+
+
 @bot.command()
 async def help(ctx):
     await ctx.send("Docs coming soon(tm)")
+
 
 @bot.command()
 async def info(ctx):
@@ -118,14 +130,54 @@ async def info(ctx):
         await ctx.send(embed=embed)
     else:
         await ctx.send("```\n"
-        "This self bot was written in Python using the discord.py library.\n"
-        "Source Code: https://github.com/DiNitride/Discord-Self-Bot\n"
-        "Author: DiNitride#7899\n"
-        "Discord.py verison: {}\n```".format(discord.__version__))
+                       "This self bot was written in Python using the discord.py library.\n"
+                       "Source Code: https://github.com/DiNitride/Discord-Self-Bot\n"
+                       "Author: DiNitride#7899\n"
+                       "Discord.py version: {}\n```".format(discord.__version__))
+
+async def save_module_loading():
+    data = json.dumps(bot.modules)
+    with open("config/modules.json", "w") as f:
+        f.write(data)
+        bot.log.notice("Saved module list")
+
+
+@bot.command(name="enable")
+async def _enable(ctx, extension: str):
+    extension = extension.lower()
+    if extension not in bot.modules.keys():
+        bot.log.error("Tried to enable module {} but it is not a valid module".format(extension))
+        await ctx.send("Invalid module")
+    else:
+        bot.modules[extension] = True
+        bot.log.debug("Unloading extension")
+        bot.unload_extension("modules." + extension)
+        bot.log.debug("Loading extension")
+        bot.load_extension("modules." + extension)
+        bot.log.notice("Enabled Module")
+        await ctx.send("Enabled Module")
+        await save_module_loading()
+
+
+@bot.command(name="disable")
+async def _disable(ctx, extension: str):
+    extension = extension.lower()
+    if extension not in bot.modules.keys():
+        bot.log.error("Tried to disable module {} but it is not a valid module".format(extension))
+        await ctx.send("Invalid module")
+    else:
+        bot.modules[extension] = False
+        bot.log.debug("Unloading extension")
+        bot.unload_extension("modules." + extension)
+        bot.log.debug("Loading extension")
+        bot.load_extension("modules." + extension)
+        bot.log.notice("Disabled module {}".format(extension))
+        await ctx.send("Disabled Module")
+        await save_module_loading()
 
 try:
     with open("config/token.txt") as token:
-        bot.log.notice("Logging in")
+        bot.log.notice("Logging into account")
         bot.run(token.read(), bot=False)
 except FileNotFoundError:
     bot.log.critical("Token File does not exist, please create 'token.txt' inside /config")
