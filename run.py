@@ -25,10 +25,18 @@ except FileNotFoundError:
 try:
     with open("config/modules.json") as f:
         _modules = json.load(f)
+    with open("config/defaults/default.modules.json") as df:
+        _df_modules = json.load(df)
+    for x in _df_modules.keys():
+        if x not in _modules.keys():
+            _modules[x] = _df_modules[x]
+    data = json.dumps(_modules)
+    with open("config/modules.json", "w") as f:
+        f.write(data)
 except FileNotFoundError:
     log.error("Module loading list not found, loading defaults")
-    df = open("config/defaults/default.modules.json")
-    _modules = json.load(df)
+    with open("config/defaults/default.modules.json") as df:
+        _modules = json.load(df)
     with open("config/modules.json", "w") as f:
         log.info("Saved module loading to file")
         f.write(json.dumps(_modules))
@@ -50,13 +58,21 @@ try:
 except FileNotFoundError:
     log.error("Module file not found, loading defaults")
 
+
 def command_debug_message(ctx, name):
     if isinstance(ctx.channel, discord.DMChannel):
         bot.log.debug("Command: {} run in DM's by user {}/{}".format(name, ctx.author, ctx.author.id))
     elif isinstance(ctx.channel, discord.GroupChannel):
-        bot.log.debug("Command: {} run in group chat {}/{} by user {}/{}".format(name, ctx.channel.name, ctx.channel.id, ctx.author, ctx.author.id))
+        bot.log.debug("Command: {} run in group chat {}/{} by user {}/{}".format(name, ctx.channel.name, ctx.channel.id,
+                                                                                 ctx.author, ctx.author.id))
     else:
-        bot.log.debug("Command: {} run in channel #{}/{} on server {}/{} by user {}/{}".format(name, ctx.channel.name, ctx.channel.id, ctx.guild, ctx.guild.id, ctx.author, ctx.author.id))
+        bot.log.debug("Command: {} run in channel #{}/{} on server {}/{} by user {}/{}".format(name,
+                                                                                               ctx.channel.name,
+                                                                                               ctx.channel.id,
+                                                                                               ctx.guild,
+                                                                                               ctx.guild.id,
+                                                                                               ctx.author,
+                                                                                               ctx.author.id))
 
 bot.cmd_log = command_debug_message
 
@@ -66,8 +82,19 @@ async def on_ready():
     bot.log.notice("Logged in as {} with ID {}".format(bot.user.name, bot.user.id))
     bot.load_extension("modules.moderation")
     bot.log.notice("Loaded moderation")
-    bot.load_extension("modules.tags")
-    bot.log.notice("Loaded tags")
+    bot.load_extension("modules.utils")
+    bot.log.notice("Loaded Utils")
+
+    await bot.change_presence(afk=True)
+    bot.log.notice("Set Client to AFK for Mobile Notifications")
+
+
+@bot.event
+async def on_command_error(error, ctx):
+    if isinstance(error, discord.ext.commands.errors.DisabledCommand):
+        await ctx.message.delete()
+        await ctx.send("`Command {} Disabled, enable it with s!enable {}`".format(ctx.invoked_with, type(ctx.cog)))
+        bot.log.error("Disabled command")
 
 
 @bot.command()
@@ -136,9 +163,9 @@ async def info(ctx):
                        "Discord.py version: {}\n```".format(discord.__version__))
 
 async def save_module_loading():
-    data = json.dumps(bot.modules)
+    _data = json.dumps(bot.modules)
     with open("config/modules.json", "w") as f:
-        f.write(data)
+        f.write(_data)
         bot.log.notice("Saved module list")
 
 

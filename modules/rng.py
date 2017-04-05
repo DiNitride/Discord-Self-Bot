@@ -6,6 +6,8 @@ class RNG():
     def __init__(self, bot):
         self.bot = bot
 
+    # OUT OF DATE
+
     #Rolls a dice
     @commands.command()
     async def dice(self, dice : str):

@@ -1,4 +1,4 @@
 {
   "moderation": true,
-  "tags": false
+  "utils": true
 }
