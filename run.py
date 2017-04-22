@@ -84,6 +84,8 @@ async def on_ready():
     bot.log.notice("Loaded moderation")
     bot.load_extension("modules.utils")
     bot.log.notice("Loaded Utils")
+    bot.load_extension("modules.tags")
+    bot.log.notice("Loaded Tags")
 
     await bot.change_presence(afk=True)
     bot.log.notice("Set Client to AFK for Mobile Notifications")
@@ -127,12 +129,15 @@ async def _eval(ctx, code):
         await ctx.send("```py\nInput: {}\nOutput: {}\n```".format(code, result))
     await ctx.message.delete()
 
-bot.remove_command("help")
-
 
 @bot.command()
-async def help(ctx):
-    await ctx.send("Docs coming soon(tm)")
+async def prefix(ctx, *, prefix: str):
+    bot.config["prefix"] = prefix
+    with open("config/config.json", "w") as f:
+        f.write(json.dumps(bot.config))
+    bot.command_prefix = prefix
+    await ctx.send("Prefix updated to {}".format(prefix))
+    bot.cmd_log(ctx, "Prefix Edit")
 
 
 @bot.command()
