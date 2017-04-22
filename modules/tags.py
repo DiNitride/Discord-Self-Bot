@@ -17,10 +17,13 @@ class Tags():
 
         self.bot.bg_task = self.bot.loop.create_task(self.save_tags())
 
-
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx, *, tag):
+        await ctx.send("heck")
 
+    @tag.command()
+    async def new(self, ctx, *, tag):
+        await ctx.send("gjirahsbgiyu")
 
     async def save_tags(self):
         await self.bot.wait_until_ready()
@@ -29,7 +32,6 @@ class Tags():
                 f.write(json.dumps(self.tags))
             self.bot.log.notice("Saved Tags")
             await asyncio.sleep(120)
-
 
 
 def setup(bot):
