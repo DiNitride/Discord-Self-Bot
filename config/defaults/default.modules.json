@@ -1,5 +1,6 @@
 {
   "moderation": true,
   "utils": true,
-  "tags": true
+  "productivity": true,
+  "misc": false
 }

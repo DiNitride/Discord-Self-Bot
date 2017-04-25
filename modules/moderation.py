@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import datetime
 
 
 class Moderation:
@@ -13,6 +12,7 @@ class Moderation:
 
     @commands.command()
     async def ban(self, ctx, user: discord.Member, delete_days=1):
+        """Bans a user from the guild"""
         self.bot.cmd_log(ctx, "ban")
         if delete_days > 7:
             delete_days = 7
@@ -22,7 +22,7 @@ class Moderation:
 
     @commands.command()
     async def xban(self, ctx, user_id: int):
-        self.bot.cmd_log(ctx, "xban")
+        """Allows the banning of a user not int he guild via ID"""
         # Stolen from Joku
         # k thnx Laura
         # https://github.com/SunDwarf/Jokusoramame/blob/master/joku/cogs/mod.py#L135
@@ -33,10 +33,13 @@ class Moderation:
         except discord.NotFound:
             await ctx.channel.send(":x: User not found.")
         else:
-            await ctx.channel.send(":heavy_check_mark: Banned user {}.".format(user_id))
+            await ctx.channel.send(":negative_squared_cross_mark:  Banned user {}.".format(user_id))
+
+        self.bot.cmd_log(ctx, "xban")
 
     @commands.command()
     async def kick(self, ctx, user: discord.Member):
+        """Kicks a user from the guild"""
         self.bot.cmd_log(ctx, "kick")
         if user:
             await ctx.guild.kick(user)

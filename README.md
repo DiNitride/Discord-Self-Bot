@@ -39,4 +39,3 @@ Default config files should be created and updated for you when you first run th
 ## Requirements
 
 - [discord.py Rewrite](https://github.com/Rapptz/discord.py/tree/rewrite)
-

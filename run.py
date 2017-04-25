@@ -80,13 +80,22 @@ bot.cmd_log = command_debug_message
 @bot.event
 async def on_ready():
     bot.log.notice("Logged in as {} with ID {}".format(bot.user.name, bot.user.id))
-    bot.load_extension("modules.moderation")
-    bot.log.notice("Loaded moderation")
-    bot.load_extension("modules.utils")
-    bot.log.notice("Loaded Utils")
-    bot.load_extension("modules.tags")
-    bot.log.notice("Loaded Tags")
+    _users = 0
+    _channels = 0
+    for user in bot.get_all_members():
+        _users += 1
+    for channel in bot.get_all_channels():
+        _channels += 1
 
+    bot.log.notice("I can see {} users in {} channels on {} guilds".format(_users, _channels, len(bot.guilds)))
+    bot.load_extension("modules.moderation")
+    bot.log.notice("Loaded Moderation Module")
+    bot.load_extension("modules.utils")
+    bot.log.notice("Loaded Utils Module")
+    bot.load_extension("modules.productivity")
+    bot.log.notice("Loaded Productivity Module")
+    bot.load_extension("modules.misc")
+    bot.log.notice("Loaded Toys Module")
     await bot.change_presence(afk=True)
     bot.log.notice("Set Client to AFK for Mobile Notifications")
 
@@ -102,14 +111,12 @@ async def on_command_error(error, ctx):
 @bot.command()
 async def ping(ctx):
     """Pong"""
-    bot.cmd_log(ctx, "Ping Pong :ping_pong: ")
-
     before = time.monotonic()
     await (await bot.ws.ping())
     after = time.monotonic()
     _ping = (after - before) * 1000
-
     await ctx.send("Ping Pong :ping_pong: **{0:.0f}ms**".format(_ping))
+    bot.cmd_log(ctx, "Ping Pong :ping_pong: ")
 
 
 @bot.command(name="eval")
@@ -128,10 +135,12 @@ async def _eval(ctx, code):
     else:
         await ctx.send("```py\nInput: {}\nOutput: {}\n```".format(code, result))
     await ctx.message.delete()
+    bot.cmd_log(ctx, "Evaluation")
 
 
 @bot.command()
 async def prefix(ctx, *, prefix: str):
+    """Edits the prefix"""
     bot.config["prefix"] = prefix
     with open("config/config.json", "w") as f:
         f.write(json.dumps(bot.config))
@@ -142,8 +151,7 @@ async def prefix(ctx, *, prefix: str):
 
 @bot.command()
 async def info(ctx):
-    """Shows information about the bot"""
-    bot.cmd_log(ctx, "Bot Info")
+    """Information about the self bot"""
     if ctx.channel.permissions_for(ctx.author).embed_links:
         embed = discord.Embed(colour=discord.Colour(0x158a2b), url="https://github.com/DiNitride/Discord-Self-Bot",
                               description="This self bot was written in Python using the discord.py library.",
@@ -166,6 +174,7 @@ async def info(ctx):
                        "Source Code: https://github.com/DiNitride/Discord-Self-Bot\n"
                        "Author: DiNitride#7899\n"
                        "Discord.py version: {}\n```".format(discord.__version__))
+    bot.cmd_log(ctx, "Bot Info")
 
 async def save_module_loading():
     _data = json.dumps(bot.modules)
@@ -176,10 +185,12 @@ async def save_module_loading():
 
 @bot.command(name="enable")
 async def _enable(ctx, extension: str):
+    """Enables a module"""
     extension = extension.lower()
     if extension not in bot.modules.keys():
         bot.log.error("Tried to enable module {} but it is not a valid module".format(extension))
         await ctx.send("Invalid module")
+        bot.cmd_log(ctx, "Attempted to enable invalid module")
     else:
         bot.modules[extension] = True
         bot.log.debug("Unloading extension")
@@ -189,14 +200,16 @@ async def _enable(ctx, extension: str):
         bot.log.notice("Enabled Module")
         await ctx.send("Enabled Module")
         await save_module_loading()
-
+        bot.cmd_log(ctx, "Enabled module {}".format(extension))
 
 @bot.command(name="disable")
 async def _disable(ctx, extension: str):
+    """Disables a module"""
     extension = extension.lower()
     if extension not in bot.modules.keys():
         bot.log.error("Tried to disable module {} but it is not a valid module".format(extension))
         await ctx.send("Invalid module")
+        bot.cmd_log(ctx, "Attempted to disable invalid module")
     else:
         bot.modules[extension] = False
         bot.log.debug("Unloading extension")
@@ -206,10 +219,14 @@ async def _disable(ctx, extension: str):
         bot.log.notice("Disabled module {}".format(extension))
         await ctx.send("Disabled Module")
         await save_module_loading()
+        bot.cmd_log(ctx, "Disabled module {}".format(extension))
 
 try:
     with open("config/token.txt") as token:
         bot.log.notice("Logging into account")
-        bot.run(token.read(), bot=False)
+        try:
+            bot.run(token.read(), bot=False)
+        except discord.errors.LoginFailure:
+            bot.log.critical("Improper token passed, quitting process")
 except FileNotFoundError:
     bot.log.critical("Token File does not exist, please create 'token.txt' inside /config")
