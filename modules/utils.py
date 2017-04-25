@@ -73,6 +73,7 @@ class Utils:
 
     @commands.command()
     async def whois(self, ctx, id):
+        """Searches via ID for a user or guild"""
         self.bot.cmd_log(ctx, "whois")
         isUser = True
         id = int(id)
@@ -90,13 +91,11 @@ class Utils:
             else:
                 embed, content = await construct_serverinfo(obj)
             if ctx.channel.permissions_for(ctx.author).embed_links:
-                await ctx.send(embed=embed)
+                await ctx.message.edit(embed=embed)
             else:
-                await ctx.send(content)
+                await ctx.message.edit(content="{}\n{}".format(ctx.message.content, content))
         else:
-            await ctx.send("Nothing found :skull_crossbones: ")
-
-        await ctx.message.delete()
+            await ctx.message.edit(content="Nothing found :skull_crossbones: ")
 
     @commands.group(invoke_without_command=True)
     async def about(self, ctx, userObj: discord.Member = None):
@@ -106,12 +105,12 @@ class Utils:
         embed, content = await construct_userinfo(userObj)
         if ctx.channel.permissions_for(ctx.author).embed_links:
             embed.set_footer(text="About")
-            embed.add_field(name="Roles", value=str(len(userObj.roles)))
+            embed.add_field(name="Roles", value=str(len(userObj.roles) - 1))
             embed.add_field(name="Date Joined Guild", value=userObj.joined_at)
             embed.add_field(name="Game", value=userObj.game)
             embed.add_field(name="Status", value=userObj.status)
             embed.add_field(name="Nickname", value=userObj.nick)
-            await ctx.send(embed=embed)
+            await ctx.message.edit(embed=embed)
         else:
             content = content.strip("`")
             content += "Roles: {}\n" \
@@ -119,10 +118,9 @@ class Utils:
                        "Game: {}\n" \
                        "Status: {}\n" \
                        "Nickname: {}\n" \
-                       "```".format(len(userObj.roles), userObj.joined_at, userObj.game, userObj.status, userObj.nick)
+                       "```".format(len(userObj.roles) - 1, userObj.joined_at, userObj.game, userObj.status, userObj.nick)
 
-            await ctx.send("```\n" + content)
-        await ctx.message.delete()
+            await ctx.message.edit(content="{}\n```\n{}".format(ctx.message.content, content))
         self.bot.cmd_log(ctx, "About User")
 
     @about.command()
@@ -131,11 +129,16 @@ class Utils:
         embed, content = await construct_serverinfo(ctx.guild)
         if ctx.channel.permissions_for(ctx.author).embed_links:
             embed.set_footer(text="About Server")
-            await ctx.send(embed=embed)
+            await ctx.message.edit(embed=embed)
         else:
-            await ctx.send(content)
-        await ctx.message.delete()
+            await ctx.message.edit(content=content)
         self.bot.cmd_log(ctx, "About Server")
+
+    @commands.command()
+    async def status(self, ctx, *, status: str):
+        """Updates your status"""
+        await self.bot.change_presence(game=discord.Game(name=status), afk=True)
+        await ctx.send("Updated status to 'Playing {}'".format(status))
 
 
 def setup(bot):
