@@ -1,5 +1,6 @@
 {
   "moderation": true,
   "utils": true,
+  "productivity": true,
   "misc": false
 }
