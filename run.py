@@ -96,7 +96,7 @@ async def on_ready():
     bot.log.notice("Loaded Productivity Module")
     bot.load_extension("modules.misc")
     bot.log.notice("Loaded Toys Module")
-    await bot.change_presence(afk=True, status=discord.Status.invisible)
+    await bot.change_presence(afk=True, status=discord.Status.idle)
     bot.log.notice("Set Client to AFK for Mobile Notifications")
 
 
