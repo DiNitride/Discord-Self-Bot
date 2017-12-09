@@ -1,4 +1,6 @@
 # Discord-Self-Bot
+# This project is old and outdated, and probably broken in many places. I do not recomend you use it. It has not been updated in months, nor am I currently maintaining it right now. When I have more time, I'll rewrite it.
+
 A Discord Self bot to do helpful things, by DiNitride#7899. A self bot is a bot that runs on your
 personal account, that is only usable by you, everywhere. Use at own risk.
 
