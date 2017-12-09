@@ -32,7 +32,7 @@ Clone the repository to your local PC or server
 ```
 git clone https://github.com/DiNitride/Discord-Self-Bot
 ```
-Create a `token.txt` file in the `/config/` folder and place your login token inside of this. ~~Add instructions to get tokens in here~~
+Create a `token.txt` file in the `/config/` folder and place your login token inside of this. The token can be found in your browser's application menu (In chrome, go to Inspect > Application tab > Storage > Local Storage > discord link)
 
 Default config files should be created and updated for you when you first run the bot. Finally run `run.py` to start the bot and it should log in and run quietly.
 
