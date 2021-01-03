@@ -34,7 +34,7 @@
 
 # Discord-Self-Bot
 
-A Discord Self bot to do helpful things, by DiNitride#7899. A self bot is a bot that runs on your
+A Discord Self bot to do helpful things, by [TAG REDACTED BECAUSE PEOPLE CAN'T READ]. A self bot is a bot that runs on your
 personal account, that is only usable by you, everywhere. Use at own risk.
 
 ## Features:
